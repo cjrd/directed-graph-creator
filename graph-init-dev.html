@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body{
+        overflow: hidden;
+      }
+      circle{
+        fill: #F6FBFF;
+        stroke: #333;
+        stroke-width: 2px;
+      }
+      .selected-node{
+        fill: #FFE4E4;
+      }
+
+      path.link {
+        fill: none;
+        stroke: #333;
+        stroke-width: 4px;
+        cursor: default;
+      }
+
+      .connect-node{
+        fill: #AAEEEE;
+      }
+
+      path.link.hidden{
+        stroke-width: 0;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>    
+    <script src="graph-creator.js"></script>
+  </body>
+
+</html>
