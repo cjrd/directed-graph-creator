@@ -3,7 +3,7 @@
 
   /** PREP **/
   var consts = {
-    selectedClass: "selected-node",
+    selectedClass: "selected",
     connectClass: "connect-node",
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
@@ -11,7 +11,8 @@
   };
 
   var state = {
-    d3SelectedNode: null,
+    selectedNode: null,
+    selectedEdge: null,
     mouseDownNode: null,
     mouseDownLink: null,
     justDragged: false,
@@ -41,7 +42,19 @@
   svg.append('svg:defs').append('svg:marker')
     .attr('id', 'end-arrow')
     .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 6)
+    .attr('refX', consts.nodeRadius)
+    .attr('markerWidth', 3)
+    .attr('markerHeight', 3)
+    .attr('orient', 'auto')
+    .append('svg:path')
+    .attr('d', 'M0,-5L10,0L0,5')
+    .attr('fill', '#000');
+
+  // define arrow markers for leading arrow
+  svg.append('svg:defs').append('svg:marker')
+    .attr('id', 'mark-end-arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 5)
     .attr('markerWidth', 3)
     .attr('markerHeight', 3)
     .attr('orient', 'auto')
@@ -52,7 +65,8 @@
   // displayed when dragging between nodes
   var dragLine = svg.append('svg:path')
     .attr('class', 'link dragline hidden')
-    .attr('d', 'M0,0L0,0');
+    .attr('d', 'M0,0L0,0')
+    .style('marker-end', 'url(#mark-end-arrow)');
 
   // svg nodes and edges
   var paths = svg.append("g").selectAll("g"),
@@ -76,10 +90,32 @@
     if (state.shiftNodeDrag){
       dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this)[0] + ',' + d3.mouse(this)[1]);
     } else{
-      d3.select(this)
-        .attr("cx", d.x = d3.event.x)
-        .attr("cy", d.y = d3.event.y);
+      d.x = d3.event.x;
+      d.y = d3.event.y;
+      updateGraph();
     }
+  }
+
+  // remove edges associated with a node
+  function spliceLinksForNode(node) {
+    var toSplice = edges.filter(function(l) {
+      return (l.source === node || l.target === node);
+    });
+    toSplice.map(function(l) {
+      edges.splice(edges.indexOf(l), 1);
+    });
+  }
+
+  function removeSelectClassFromNode(nodeData){
+    circles.selectAll("circle").filter(function(cd){
+      return cd.id === nodeData.id;
+    }).classed(consts.selectedClass, false);
+  }
+
+  function removeSelectClassFromEdge(edgeData){
+    paths.filter(function(cd){
+      return cd === edgeData;
+    }).classed(consts.selectedClass, false);
   }
 
   // mousedown on main svg
@@ -103,15 +139,22 @@
     if(state.lastKeyDown !== -1) return;
 
     state.lastKeyDown = d3.event.keyCode;
-    var selectedNode = state.d3SelectedNode;
+    var selectedNode = state.selectedNode,
+        selectedEdge = state.selectedEdge;
 
     switch(d3.event.keyCode) {
     case consts.BACKSPACE_KEY:
     case consts.DELETE_KEY:
       d3.event.preventDefault();
       if (selectedNode){
-        selectedNode.remove();
-        state.d3SelectedNode = null;
+        nodes.splice(nodes.indexOf(selectedNode), 1);
+        spliceLinksForNode(selectedNode);
+        state.selectedNode = null;
+        updateGraph();
+      } else if (selectedEdge){
+        edges.splice(edges.indexOf(selectedEdge), 1);
+        state.selectedEdge = null;
+        updateGraph();
       }
       break;
     }
@@ -123,21 +166,55 @@
 
   // call to propagate changes to graph
   function updateGraph(){
-    // update existing paths
-    paths = paths.data(edges);
 
-    paths.enter()
-        .append("path")
-        .classed("link", true)
-        .attr("d", function(d){
+    paths = paths.data(edges);
+    
+    // update existing paths
+    paths.style('marker-end', 'url(#end-arrow)')
+    .attr("d", function(d){
           return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
         });
 
+    // add new paths
+    paths.enter()
+        .append("path")
+        .style('marker-end','url(#end-arrow)')
+        .classed("link", true)
+        .attr("d", function(d){
+          return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+        })
+        .on("mousedown", function(d){
+          state.mouseDownLink = d;
+          var d3this = d3.select(this);
+          if (state.selectedNode) removeSelectClassFromNode(state.selectedNode);
+          
+          var prevEdge = state.selectedEdge;  
+          if (prevEdge){
+            removeSelectClassFromEdge(prevEdge);
+          }
+          
+          if (!prevEdge || prevEdge !== d){
+            d3this.classed(consts.selectedClass, true);
+            state.selectedEdge = d;
+          } else{
+            state.selectedEdge = null;
+          }
+        })
+        .on("mouseup", function(d){
+          state.mouseDownLink = null;
+        });
+
+    // remove old links
+    paths.exit().remove();
+    
     // update existing nodes
-      circles = circles.data(nodes, function(d){ return d.id;});
+    circles = circles.data(nodes, function(d){ return d.id;});
+    circles.selectAll("circle")
+      .attr("cx", function(d){return d.x;})
+      .attr("cy", function(d){return d.y;});
 
     // add new nodes
-      circles.enter()
+    circles.enter()
       .append("g")
       .append("circle")
       .attr("cx", function(d){return d.x;})
@@ -156,7 +233,7 @@
         if (d3.event.shiftKey){
           state.shiftNodeDrag = d3.event.shiftKey;
           // reposition drag line
-          dragLine.style('marker-end', 'url(#end-arrow)')
+          dragLine
             .classed('hidden', false)
             .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
           return;
@@ -172,6 +249,8 @@
         
         if (!mouseDownNode) return;
 
+        dragLine.classed("hidden", true);
+        
         if (mouseDownNode !== d){
           // were in a different node
           // create new edge for mousedown edge and add to graph
@@ -184,16 +263,17 @@
             state.justDragged = false;
           } else{
               // clicked, not dragged (shaken, not stirred)
-            var prevNode = state.d3SelectedNode;            
+            if (state.selectedEdge) removeSelectClassFromEdge(state.selectedEdge);
+            var prevNode = state.selectedNode;            
             if (prevNode){
-              prevNode.classed(consts.selectedClass, false);
+              removeSelectClassFromNode(prevNode);
             }
             
-            if (!prevNode || prevNode.node() !== d3this.node()){
+            if (!prevNode || prevNode.id !== d.id){
               d3this.classed(consts.selectedClass, true);
-              state.d3SelectedNode = d3this;
+              state.selectedNode = d;
             } else{
-              state.d3SelectedNode = null;
+              state.selectedNode = null;
             }
           }
         }
@@ -204,6 +284,8 @@
       })
       .call(drag);
 
+    // remove old nodes
+    circles.exit().remove();
   }
 
 
