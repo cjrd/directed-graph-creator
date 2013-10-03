@@ -5,7 +5,25 @@
       body{
        overflow: hidden;
       }
-      g{
+
+      foreignObject, p {
+        pointer-events: none;
+        -webkit-touch-callout: text;
+        -webkit-user-select: text;
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+      }
+
+      p{
+        text-align: center;
+      }
+      p:focus{
+        pointer-events: all;
+      }
+
+      body{
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -khtml-user-select: none;
@@ -43,7 +61,7 @@
         stroke: rgb(94, 196, 204);
       }
 
-      .connect-node circle{
+      g.connect-node circle{
         fill: #BEFFFF;
       }
 

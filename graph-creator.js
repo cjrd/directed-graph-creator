@@ -8,6 +8,7 @@ document.onload = (function(d3){
     circleGClass: "conceptG",
     BACKSPACE_KEY: 8,
     DELETE_KEY: 46,
+    ENTER_KEY: 13,
     nodeRadius: 50
   };
 
@@ -18,7 +19,8 @@ document.onload = (function(d3){
     mouseDownLink: null,
     justDragged: false,
     lastKeyDown: -1,
-    shiftNodeDrag: false
+    shiftNodeDrag: false,
+    selectedText: null
   };
 
   var height = window.innerHeight,
@@ -69,10 +71,10 @@ document.onload = (function(d3){
         .attr('d', 'M0,0L0,0')
         .style('marker-end', 'url(#mark-end-arrow)');
 
-  // svg nodes and edges
+  // svg nodes and edges 
   var paths = svg.append("g").selectAll("g"),
-      circles = svg.append("g").selectAll("g");
-  
+      circles = svg.append("g").selectAll("g"),
+      fobjs = svg.selectAll("foreignObject");
   
   var drag = d3.behavior.drag()
         .origin(function(d){
@@ -88,7 +90,7 @@ document.onload = (function(d3){
 
   function dragmove(d) {
     if (state.shiftNodeDrag){
-      dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.event.x + ',' + d3.event.y);
+      dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(svg.node())[0] + ',' + d3.mouse(svg.node())[1]);
     } else{
       d.x = d3.event.x;
       d.y =  d3.event.y;
@@ -96,6 +98,14 @@ document.onload = (function(d3){
     }
   }
 
+  /* taken from http://stackoverflow.com/questions/6139107/programatically-select-text-in-a-contenteditable-html-element */
+  function selectElementContents(el) {
+    var range = document.createRange();
+    range.selectNodeContents(el);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
   // remove edges associated with a node
   function spliceLinksForNode(node) {
     var toSplice = edges.filter(function(l) {
@@ -136,25 +146,26 @@ document.onload = (function(d3){
     state.selectedEdge = null;
   }
 
-  // mousedown on main svg
-  function mousedown(){
-    if (d3.event.shiftKey || state.mouseDownNode || state.mouseDownLink) return;
-    var xycoords = d3.mouse(d3.event.currentTarget);
-    nodes.push({id: idct++, title: "new concept", x: xycoords[0], y: xycoords[1]});
-    updateGraph();
-  }
+  function pathMouseDown(d){
+    d3.event.stopPropagation();
+    state.mouseDownLink = d;
+    var d3this = d3.select(this);
 
-  // mouseup on main svg
-  function mouseup(){
-    if(!state.mouseDownNode) return;
+    if (state.selectedNode){
+      removeSelectFromNode();
+    }
     
-    state.shiftNodeDrag = false;
-    dragLine.classed("hidden", true);
-    state.mouseDownNode = null;
+    var prevEdge = state.selectedEdge;  
+    if (!prevEdge || prevEdge !== d){
+      replaceSelectEdge(d3this, d);
+    } else{
+      removeSelectFromEdge();
+    }
   }
 
   // mousedown on node
   function circleMouseDown(d){
+    d3.event.stopPropagation();
     state.mouseDownNode = d;
     if (d3.event.shiftKey){
       state.shiftNodeDrag = d3.event.shiftKey;
@@ -197,25 +208,51 @@ document.onload = (function(d3){
         // dragged, not clicked
         state.justDragged = false;
       } else{
-        // clicked, not dragged (shaken, not stirred)
-        if (state.selectedEdge){
-          removeSelectFromEdge();
-        }
-        var prevNode = state.selectedNode;            
-        
-        if (!prevNode || prevNode.id !== d.id){
-          replaceSelectNode(d3this, d);
+
+        if (d3.event.shiftKey){
+          // edit text content
+          var tnode = fobjs.filter(function(fd){return fd === d;})
+                .select("p")
+                .node();
+          tnode.focus();
+          selectElementContents(tnode);
         } else{
-          removeSelectFromNode();
+          // clicked, not dragged
+          if (state.selectedEdge){
+            removeSelectFromEdge();
+          }
+          var prevNode = state.selectedNode;            
+          
+          if (!prevNode || prevNode.id !== d.id){
+            replaceSelectNode(d3this, d);
+          } else{
+            removeSelectFromNode();
+          }
         }
       }
+      
     }
 
     state.mouseDownNode = null;
     return;
     
   } // end of circles mouseup
-  function keydown() {
+
+  // mousedown on main svg
+  function svgMouseDown(){
+    var xycoords = d3.mouse(d3.event.currentTarget);
+    nodes.push({id: idct++, title: "new concept", x: xycoords[0], y: xycoords[1]});
+    updateGraph();
+  }
+
+  // mouseup on main svg
+  function svgMouseUp(){
+    state.shiftNodeDrag = false;
+    dragLine.classed("hidden", true);
+    state.mouseDownNode = null;
+  }
+
+  function svgKeyDown() {
     // make sure repeated key presses don't register for each keydown
     if(state.lastKeyDown !== -1) return;
 
@@ -241,7 +278,7 @@ document.onload = (function(d3){
     }
   }
 
-  function keyup() {
+  function svgKeyUp() {
     state.lastKeyDown = -1;
   }
 
@@ -267,21 +304,7 @@ document.onload = (function(d3){
       .attr("d", function(d){
         return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
       })
-      .on("mousedown", function(d){
-        state.mouseDownLink = d;
-        var d3this = d3.select(this);
-
-        if (state.selectedNode){
-          removeSelectFromNode();
-        }
-        
-        var prevEdge = state.selectedEdge;  
-        if (!prevEdge || prevEdge !== d){
-          replaceSelectEdge(d3this, d);
-        } else{
-          removeSelectFromEdge();
-        }
-      })
+      .on("mousedown", pathMouseDown)
       .on("mouseup", function(d){
         state.mouseDownLink = null;
       });
@@ -314,22 +337,41 @@ document.onload = (function(d3){
 
     newGs.append("circle")
       .attr("r", String(consts.nodeRadius));
-    newGs.append("text")
-      .text(function(d){ return d.title; })
-      .attr("text-anchor", "middle")
-      .attr("dy", 5);
 
-    
     // remove old nodes
     circles.exit().remove();
+
+    // update existing text (cannot place text in node's g element: https://github.com/metacademy/directed-graph-creator/issues/2)
+    fobjs = fobjs.data(nodes, function(d){ return d.id;});
+
+    fobjs.attr("x", function(d){return d.x- consts.nodeRadius*0.707;})
+    .attr("y", function(d){return d.y- consts.nodeRadius*0.707;});
+    
+    fobjs.enter().append("foreignObject")
+      .attr("x", function(d){return d.x - consts.nodeRadius*0.707;})
+      .attr("y", function(d){return d.y - consts.nodeRadius*0.707;})
+      .attr("height", consts.nodeRadius*1.42)
+      .attr("width", consts.nodeRadius*1.42)
+      .on("mousedown", function(d){d3.event.stopPropagation();})
+      .append("xhtml:p")
+      .attr("contentEditable", "true")
+      .text(function(d){return d.title;})
+      .on("keydown", function(d){
+        d3.event.stopPropagation();
+        d.title = this.textContent;
+        if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.shiftKey){
+          this.blur();
+        }
+      });
+    fobjs.exit().remove();
   }
 
 
   /** START THE APP **/
   // listen for key events
-  d3.select(window).on("keydown", keydown).on("keyup", keyup);
-  svg.on("mousedown", mousedown);
-  svg.on("mouseup", mouseup);
+  d3.select(window).on("keydown", svgKeyDown).on("keyup", svgKeyUp);
+  svg.on("mousedown", svgMouseDown);
+  svg.on("mouseup", svgMouseUp);
   updateGraph();
 
 })(window.d3);
