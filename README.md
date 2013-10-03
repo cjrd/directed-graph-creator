@@ -3,6 +3,11 @@ directed-graph-creator
 
 Interactive tool for creating directed graphs
 
+Run:
+
+* `python -m SimpleHTTPServer 8000`
+* navigate to http://127.0.0.1:8000/graph-init-dev.html
+
 Operation:
 
 * Click on graph to create a node
