@@ -10,19 +10,27 @@
         stroke: #333;
         stroke-width: 2px;
       }
-      circle.selected{
-        fill: #FFE4E4;
+      circle:hover{
+        fill: rgb(200, 238, 241);
       }
+      circle.selected{
+        fill: rgb(250, 232, 255);
+      }
+
 
       path.link {
         fill: none;
         stroke: #333;
-        stroke-width: 4px;
+        stroke-width: 6px;
         cursor: default;
       }
 
+      path.link:hover{
+        stroke: rgb(94, 196, 204);
+      }
+
       .connect-node{
-        fill: #AAEEEE;
+        fill: #BEFFFF;
       }
 
       path.link.hidden{
@@ -30,7 +38,7 @@
       }
 
       path.link.selected {
-        stroke: blue;
+        stroke: rgb(229, 172, 247);
       }
 
     </style>
