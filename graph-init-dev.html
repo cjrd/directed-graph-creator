@@ -3,17 +3,31 @@
   <head>
     <style>
       body{
-        overflow: hidden;
+       overflow: hidden;
       }
-      circle{
+      g{
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      g.conceptG circle{
         fill: #F6FBFF;
         stroke: #333;
         stroke-width: 2px;
       }
-      circle:hover{
+      
+      g.conceptG:hover circle{
         fill: rgb(200, 238, 241);
       }
-      circle.selected{
+      
+      g.selected circle{
+        fill: rgb(250, 232, 255);
+      }
+      g.selected:hover circle{
         fill: rgb(250, 232, 255);
       }
 
@@ -29,7 +43,7 @@
         stroke: rgb(94, 196, 204);
       }
 
-      .connect-node{
+      .connect-node circle{
         fill: #BEFFFF;
       }
 
@@ -45,7 +59,7 @@
   </head>
 
   <body>
-    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>    
+    <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>    
     <script src="graph-creator.js"></script>
   </body>
 
