@@ -11,6 +11,7 @@ Run:
 Operation:
 
 * Click on graph to create a node
-* shift-click-drag to connect nodes with edges
+* shift-click and then drag to connect nodes with edges
+* shift-click on a node to change its title
 * click on node or edge and press backspace to delete
 
