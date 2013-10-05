@@ -54,8 +54,8 @@ document.onload = (function(d3){
     .attr('markerHeight', 3.5)
     .attr('orient', 'auto')
     .append('svg:path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .attr('fill', '#000');
+    .attr('d', 'M0,-5L10,0L0,5');
+
 
   // define arrow markers for leading arrow
   defs.append('svg:marker')
@@ -66,8 +66,8 @@ document.onload = (function(d3){
     .attr('markerHeight', 3.5)
     .attr('orient', 'auto')
     .append('svg:path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .attr('fill', '#000');
+    .attr('d', 'M0,-5L10,0L0,5');
+
 
   var svgG = svg.append("g")
                .classed(consts.graphClass, true);
@@ -413,7 +413,14 @@ document.onload = (function(d3){
   svg.on("mouseup", svgMouseUp);
 
   // listen for dragging
-  var dragSvg = d3.behavior.zoom().on("zoom", zoomed);
+  var dragSvg = d3.behavior.zoom()
+        .on("zoom", zoomed)
+        .on("zoomstart", function(){
+          d3.select('body').style("cursor", "move");
+        })
+        .on("zoomend", function(){
+          d3.select('body').style("cursor", "auto");
+        });
   function zoomed(){
     var ael = d3.select("#" + consts.activeEditId).node();
     if (ael){
@@ -427,5 +434,20 @@ document.onload = (function(d3){
   svg.call(dragSvg);
   
   updateGraph();
+
+  // handle resizing window
+var w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.
+    x = w.innerWidth || e.clientWidth || g.clientWidth,
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+
+  function updateWindow(){
+    var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
+    var y = window.innerHeight|| document.documentElement.clientHeight|| document.getElementsByTagName('body')[0].clientHeight;
+    svg.attr("width", x).attr("height", y);
+  }
+  window.onresize = updateWindow;
 
 })(window.d3);

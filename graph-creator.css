@@ -22,6 +22,10 @@ body{
     background-color: rgb(248, 248, 248)
 }
 
+marker{
+    fill: #333;
+}
+
 g.conceptG circle{
     fill: #F6FBFF;
     stroke: #333;
