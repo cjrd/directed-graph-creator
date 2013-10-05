@@ -113,19 +113,13 @@ document.onload = (function(d3){
     sel.addRange(range);
   }
 
-  function insertSvgTxt(d3obj, txt){
-    insertTitleLinebreaks(d3obj, txt);
-    // d3obj.append("text")
-    // .text(txt)
-    // .attr("dy", 5)
-    // .attr("text-anchor", "middle");
-  }
   /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
   var insertTitleLinebreaks = function (gEl, title) {
-    var words = title.split(/\s+/g);
+    var words = title.split(/\s+/g),
+        nwords = words.length;
     var el = gEl.append("text")
           .attr("text-anchor","middle")
-          .attr("dy", "-" + consts.nodeRadius/2);
+          .attr("dy", "-" + (nwords-1)*7.5);
 
     for (var i = 0; i < words.length; i++) {
         var tspan = el.append('tspan').text(words[i]);
@@ -270,7 +264,7 @@ document.onload = (function(d3){
             })
             .on("blur", function(d){
                 d.title = this.textContent;
-                insertSvgTxt(d3this, d.title);
+                insertTitleLinebreaks(d3this, d.title);
                 d3.select(this.parentElement).remove();
               });
           var txtNode = d3txt.node();
@@ -405,7 +399,7 @@ document.onload = (function(d3){
       .attr("r", String(consts.nodeRadius));
 
     newGs.each(function(d){
-      insertSvgTxt(d3.select(this), d.title);
+      insertTitleLinebreaks(d3.select(this), d.title);
     });
 
     // remove old nodes
