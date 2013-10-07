@@ -504,6 +504,10 @@ var w = window,
   // handle delete graph
   d3.select("#delete-graph").on("click", deleteGraph);
 
+  // warn the user when leaving
+  window.onbeforeunload = function(){
+    return "Make sure to save your graph locally before leaving :-)";
+  };
   /** START THE APP **/
   updateGraph();
 
