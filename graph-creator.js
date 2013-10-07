@@ -27,8 +27,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     selectedText: null
   };
 
-  var height = window.innerHeight,
-      width = window.innerWidth;
+  var docEl = document.documentElement,
+      bodyEl = document.getElementsByTagName('body')[0];
+  
+  var width = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth,
+      height =  window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
 
   var xLoc = width/2 - consts.nodeRadius/2,
       yLoc = 100;
@@ -442,17 +445,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
               
   svg.call(dragSvg);
   
-  // handle resizing window
-var w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.
-    x = w.innerWidth || e.clientWidth || g.clientWidth,
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-
   function updateWindow(){
-    var x = window.innerWidth || document.documentElement.clientWidth || document.getElementsByTagName('body')[0].clientWidth;
-    var y = window.innerHeight|| document.documentElement.clientHeight|| document.getElementsByTagName('body')[0].clientHeight;
+    var docEl = document.documentElement,
+        bodyEl = document.getElementsByTagName('body')[0];
+    var x = window.innerWidth || docEl.clientWidth || bodyEl.clientWidth;
+    var y = window.innerHeight|| docEl.clientHeight|| bodyEl.clientHeight;
     svg.attr("width", x).attr("height", y);
   }
   window.onresize = updateWindow;
