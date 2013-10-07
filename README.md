@@ -1,7 +1,7 @@
 directed-graph-creator
 ======================
 
-Interactive tool for creating directed graphs
+Interactive tool for creating directed graphs, created using d3.js.
 
 Run:
 
@@ -13,5 +13,8 @@ Operation:
 * Click on graph to create a node
 * shift-click and then drag to connect nodes with edges
 * shift-click on a node to change its title
-* click on node or edge and press backspace to delete
+* click on node or edge and press backspace/delete to delete
+
+
+
 

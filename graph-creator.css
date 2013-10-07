@@ -6,6 +6,7 @@ body{
 p{ 
      text-align: center; 
      overflow: overlay;
+     position: relative;
 }
 
 body{
@@ -71,7 +72,6 @@ g.selected circle{
 g.selected:hover circle{
     fill: rgb(250, 232, 255);
 }
-
 
 path.link {
     fill: none;

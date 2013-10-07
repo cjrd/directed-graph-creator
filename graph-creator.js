@@ -1,3 +1,4 @@
+// TODO consider forming a Graph object or integrate with backbone
 document.onload = (function(d3, saveAs, Blob, undefined){
   "use strict";
 
@@ -56,7 +57,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     .append('svg:path')
     .attr('d', 'M0,-5L10,0L0,5');
 
-
   // define arrow markers for leading arrow
   defs.append('svg:marker')
     .attr('id', 'mark-end-arrow')
@@ -67,7 +67,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     .attr('orient', 'auto')
     .append('svg:path')
     .attr('d', 'M0,-5L10,0L0,5');
-
 
   var svgG = svg.append("g")
                .classed(consts.graphClass, true);
@@ -323,6 +322,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     state.graphMouseDown = false;
   }
 
+  // keydown on main svg
   function svgKeyDown() {
     // make sure repeated key presses don't register for each keydown
     if(state.lastKeyDown !== -1) return;
@@ -416,7 +416,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     circles.exit().remove();
   }
 
-  /** START THE APP **/
   // listen for key events
   d3.select(window).on("keydown", svgKeyDown).on("keyup", svgKeyUp);
   svg.on("mousedown", svgMouseDown);
@@ -443,8 +442,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
               
   svg.call(dragSvg);
   
-  updateGraph();
-
   // handle resizing window
 var w = window,
     d = document,
@@ -477,7 +474,7 @@ var w = window,
   d3.select("#hidden-file-upload").on("change", function(){
     if (window.File && window.FileReader && window.FileList && window.Blob) {
       var uploadFile = this.files[0];
-      var filereader = new FileReader();
+      var filereader = new window.FileReader();
             
       filereader.onload = function(){
         var txtRes = filereader.result;
@@ -496,7 +493,6 @@ var w = window,
            window.alert("Error parsing uploaded file\nerror message: " + err.message);
            return;
          }
-        
       };
       filereader.readAsText(uploadFile);
   
@@ -507,5 +503,8 @@ var w = window,
 
   // handle delete graph
   d3.select("#delete-graph").on("click", deleteGraph);
+
+  /** START THE APP **/
+  updateGraph();
 
 })(window.d3, window.saveAs, window.Blob);
