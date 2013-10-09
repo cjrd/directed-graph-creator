@@ -64,7 +64,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   defs.append('svg:marker')
     .attr('id', 'mark-end-arrow')
     .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 0)
+    .attr('refX', 7)
     .attr('markerWidth', 3.5)
     .attr('markerHeight', 3.5)
     .attr('orient', 'auto')
@@ -312,7 +312,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (state.justScaleTransGraph) {
       // dragged not clicked
       state.justScaleTransGraph = false;
-    } else if (state.graphMouseDown){
+    } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(svgG.node());
       nodes.push({id: idct++, title: "new concept", x: xycoords[0], y: xycoords[1]});
@@ -426,24 +426,32 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
   // listen for dragging
   var dragSvg = d3.behavior.zoom()
-        .on("zoom", zoomed)
+        .on("zoom", function(){
+          if (d3.event.sourceEvent.shiftKey){
+            // TODO  the internal d3 state is still changing
+            return false;
+          } else{
+            zoomed.call(this);
+          }
+          return true;
+        })
         .on("zoomstart", function(){
-          d3.select('body').style("cursor", "move");
+          var ael = d3.select("#" + consts.activeEditId).node();
+          if (ael){
+            ael.blur();
+          }
+          if (!d3.event.sourceEvent.shiftKey) d3.select('body').style("cursor", "move");
         })
         .on("zoomend", function(){
           d3.select('body').style("cursor", "auto");
         });
   function zoomed(){
-    var ael = d3.select("#" + consts.activeEditId).node();
-    if (ael){
-      ael.blur();
-    }
-    state.justScaleTransGraph = true;
+      state.justScaleTransGraph = true;
       d3.select("." + consts.graphClass)
     .attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")"); 
   }
               
-  svg.call(dragSvg);
+  svg.call(dragSvg).on("dblclick.zoom", null);
   
   function updateWindow(){
     var docEl = document.documentElement,
