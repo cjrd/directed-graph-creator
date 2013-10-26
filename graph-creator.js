@@ -210,6 +210,44 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     }
   }
 
+  /* place editable text on node in place of svg text */
+  function changeTextOfNode(d3node, d){
+    var htmlEl = d3node.node();
+    d3node.selectAll("text").remove();
+    var nodeBCR = htmlEl.getBoundingClientRect();
+    var curScale = nodeBCR.width/consts.nodeRadius;
+    var placePad  =  5*curScale,
+        useHW = curScale > 1 ? nodeBCR.width*0.71 : consts.nodeRadius*1.42;
+    // replace with editableconent text
+    var d3txt = svg.selectAll("foreignObject")
+          .data([d])
+          .enter()
+          .append("foreignObject")
+          .attr("x", nodeBCR.left + placePad )
+          .attr("y", nodeBCR.top + placePad)
+          .attr("height", 2*useHW)
+          .attr("width", useHW)
+          .append("xhtml:p")
+          .attr("id", consts.activeEditId)
+          .attr("contentEditable", "true")
+          .text(d.title)
+          .on("mousedown", function(d){
+            d3.event.stopPropagation();
+          })
+          .on("keydown", function(d){
+            d3.event.stopPropagation();
+            if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.shiftKey){
+              this.blur();
+            }
+          })
+          .on("blur", function(d){
+            d.title = this.textContent;
+            insertTitleLinebreaks(d3node, d.title);
+            d3.select(this.parentElement).remove();
+          });
+    return d3txt;
+  }
+
   // mouseup on nodes
   function circleMouseUp(d){
     // reset the states
@@ -245,40 +283,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         // clicked, not dragged
         if (d3.event.shiftKey){
           // shift-clicked node: edit text content
-
-          d3this.selectAll("text").remove();
-          
-          var nodeBCR = this.getBoundingClientRect();
-          var curScale = nodeBCR.width/consts.nodeRadius;
-          var placePad  =  5*curScale,
-              useHW = curScale > 1 ? nodeBCR.width*0.71 : consts.nodeRadius*1.42;
-          // replace with editableconent text
-          var d3txt = svg.selectAll("foreignObject")
-            .data([d])
-            .enter()
-            .append("foreignObject")
-            .attr("x", nodeBCR.left + placePad )
-            .attr("y", nodeBCR.top + placePad)
-            .attr("height", 2*useHW)
-            .attr("width", useHW)
-            .append("xhtml:p")
-            .attr("id", consts.activeEditId)
-            .attr("contentEditable", "true")
-            .text(d.title)
-            .on("mousedown", function(d){
-              d3.event.stopPropagation();
-            })
-            .on("keydown", function(d){
-              d3.event.stopPropagation();
-              if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.shiftKey){
-                this.blur();
-              }
-            })
-            .on("blur", function(d){
-                d.title = this.textContent;
-                insertTitleLinebreaks(d3this, d.title);
-                d3.select(this.parentElement).remove();
-              });
+          var d3txt = changeTextOfNode(d3this, d);
           var txtNode = d3txt.node();
           selectElementContents(txtNode);
           txtNode.focus();
@@ -314,9 +319,18 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       state.justScaleTransGraph = false;
     } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
-      var xycoords = d3.mouse(svgG.node());
-      nodes.push({id: idct++, title: "new concept", x: xycoords[0], y: xycoords[1]});
+      var xycoords = d3.mouse(svgG.node()),
+          d = {id: idct++, title: "new concept", x: xycoords[0], y: xycoords[1]};
+      nodes.push(d);
       updateGraph();
+      // make title of text immediently editable
+      var d3txt = changeTextOfNode(circles.filter(function(dval){
+        return dval.id === d.id;
+        }),
+      d),
+      txtNode = d3txt.node();
+      selectElementContents(txtNode);
+      txtNode.focus();
     } else if (state.shiftNodeDrag){
       // dragged from node
       state.shiftNodeDrag = false;
