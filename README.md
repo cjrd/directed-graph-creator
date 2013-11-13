@@ -3,6 +3,8 @@ directed-graph-creator
 
 Interactive tool for creating directed graphs, created using d3.js.
 
+Demo: http://bl.ocks.org/cjrd/6863459
+
 Operation:
 
 * drag/scroll to translate/zoom the graph
