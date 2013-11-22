@@ -197,9 +197,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (!skipPrompt){
       doDelete = window.confirm("Press OK to delete this graph");
     }
-    thisGraph.nodes = [];
-    thisGraph.edges = [];
-    thisGraph.updateGraph();
+    if(doDelete){
+      thisGraph.nodes = [];
+      thisGraph.edges = [];
+      thisGraph.updateGraph();
+    }
   };
 
   /* select all text in element: taken from http://stackoverflow.com/questions/6139107/programatically-select-text-in-a-contenteditable-html-element */
