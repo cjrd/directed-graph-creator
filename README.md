@@ -3,11 +3,11 @@ directed-graph-creator
 
 Interactive tool for creating directed graphs, created using d3.js.
 
-<p align="center">
-<img src="http://obphio.us/media/images/digraph-creator.png" alt="Metacademy Logo" height="150px"/>
-</p>
-
 Demo: http://bl.ocks.org/cjrd/6863459
+
+<p align="center">
+<img src="http://obphio.us/media/images/digraph-creator.png" alt="Metacademy Logo" height="350px"/>
+</p>
 
 Operation:
 
