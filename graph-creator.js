@@ -142,7 +142,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
             var jsonObj = JSON.parse(txtRes);
             thisGraph.deleteGraph(true);
             thisGraph.nodes = jsonObj.nodes;
-            thisGraph.setIdCt(jsonObj.nodes.length + 1);
+            // nodes can be deleted, so we need to look for the largest id
+            const max_id = thisGraph.nodes.reduce(function(prev, curr) {
+              return (prev.id > curr.id) ? prev.id : curr.id
+            });
+            thisGraph.setIdCt(max_id + 1);
             var newEdges = jsonObj.edges;
             newEdges.forEach(function(e, i){
               newEdges[i] = {source: thisGraph.nodes.filter(function(n){return n.id == e.source;})[0],
