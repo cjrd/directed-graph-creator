@@ -24,7 +24,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       justDragged: false,
       justScaleTransGraph: false,
       lastKeyDown: -1,
-      shiftNodeDrag: false,
+      NodeDrag: false,
       selectedText: null
     };
 
@@ -91,7 +91,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     // listen for dragging
     var dragSvg = d3.behavior.zoom()
           .on("zoom", function(){
-            if (d3.event.sourceEvent.shiftKey){
+            if (d3.event.sourceEvent.ctrlKey){
               // TODO  the internal d3 state is still changing
               return false;
             } else{
@@ -104,7 +104,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
             if (ael){
               ael.blur();
             }
-            if (!d3.event.sourceEvent.shiftKey) d3.select('body').style("cursor", "move");
+            if (!d3.event.sourceEvent.ctrlKey) d3.select('body').style("cursor", "move");
           })
           .on("zoomend", function(){
             d3.select('body').style("cursor", "auto");
@@ -189,7 +189,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
   GraphCreator.prototype.dragmove = function(d) {
     var thisGraph = this;
-    if (thisGraph.state.shiftNodeDrag){
+    if (thisGraph.state.NodeDrag){
       thisGraph.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(thisGraph.svgG.node())[0] + ',' + d3.mouse(this.svgG.node())[1]);
     } else{
       d.x += d3.event.dx;
@@ -306,8 +306,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         state = thisGraph.state;
     d3.event.stopPropagation();
     state.mouseDownNode = d;
-    if (d3.event.shiftKey){
-      state.shiftNodeDrag = d3.event.shiftKey;
+    if (d3.event.ctrlKey){
+      state.NodeDrag = d3.event.ctrlKey;
       // reposition dragged directed edge
       thisGraph.dragLine.classed('hidden', false)
         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
@@ -343,7 +343,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           })
           .on("keydown", function(d){
             d3.event.stopPropagation();
-            if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.shiftKey){
+            if (d3.event.keyCode == consts.ENTER_KEY && !d3.event.ctrlKey){
               this.blur();
             }
           })
@@ -361,7 +361,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         state = thisGraph.state,
         consts = thisGraph.consts;
     // reset the states
-    state.shiftNodeDrag = false;
+    state.NodeDrag = false;
     d3node.classed(consts.connectClass, false);
 
     var mouseDownNode = state.mouseDownNode;
@@ -390,8 +390,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         state.justDragged = false;
       } else{
         // clicked, not dragged
-        if (d3.event.shiftKey){
-          // shift-clicked node: edit text content
+        if (d3.event.ctrlKey){
+          // ctrl-clicked node: edit text content
           var d3txt = thisGraph.changeTextOfNode(d3node, d);
           var txtNode = d3txt.node();
           thisGraph.selectElementContents(txtNode);
@@ -427,7 +427,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (state.justScaleTransGraph) {
       // dragged not clicked
       state.justScaleTransGraph = false;
-    } else if (state.graphMouseDown && d3.event.shiftKey){
+    } else if (state.graphMouseDown && d3.event.ctrlKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
           d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1]};
@@ -440,9 +440,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           txtNode = d3txt.node();
       thisGraph.selectElementContents(txtNode);
       txtNode.focus();
-    } else if (state.shiftNodeDrag){
+    } else if (state.NodeDrag){
       // dragged from node
-      state.shiftNodeDrag = false;
+      state.NodeDrag = false;
       thisGraph.dragLine.classed("hidden", true);
     }
     state.graphMouseDown = false;
@@ -532,7 +532,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     newGs.classed(consts.circleGClass, true)
       .attr("transform", function(d){return "translate(" + d.x + "," + d.y + ")";})
       .on("mouseover", function(d){
-        if (state.shiftNodeDrag){
+        if (state.NodeDrag){
           d3.select(this).classed(consts.connectClass, true);
         }
       })
